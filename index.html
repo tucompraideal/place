@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nombre sitio - Catálogo Interactivo</title>
     <!-- Bootstrap 5 CSS para diseño responsivo -->
-    <link href="https://jsdelivr.net" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
             --fresh-mint: #e8f5e9;
@@ -43,7 +43,7 @@
         </div>
     </nav>
 
-    <!-- VISTA 1: EL CATÁLOGO PRINCIPAL (CUADRÍCULA RESPONSIVA) -->
+    <!-- VISTA 1: EL CATÁLOGO PRINCIPAL -->
     <div id="catalog-view" class="container my-5">
         <div class="row justify-content-center mb-4">
             <div class="col-md-8 text-center">
@@ -62,12 +62,10 @@
             </div>
         </div>
 
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="products-grid">
-            <!-- Renderizado dinámico desde JavaScript -->
-        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="products-grid"></div>
     </div>
 
-    <!-- VISTA 2: DETALLE DEL PRODUCTO + CHATBOT ASISTENTE -->
+    <!-- VISTA 2: DETALLE DEL PRODUCTO + CHATBOT -->
     <div id="detail-view" class="container my-5 hidden">
         <div class="mb-4">
             <button class="btn btn-light border shadow-sm" onclick="showCatalog()">&larr; Volver al catálogo</button>
@@ -75,7 +73,6 @@
         
         <div class="card p-4 shadow-sm border-0 bg-white" style="border-radius: 16px;">
             <div class="row g-4">
-                <!-- Izquierda: Carrusel y Ficha Técnica -->
                 <div class="col-md-6">
                     <div id="productCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
                         <div class="carousel-inner" id="carousel-images"></div>
@@ -93,7 +90,6 @@
                     <span class="badge bg-secondary p-2">Sugerencia: Unitalla</span>
                 </div>
                 
-                <!-- Derecha: El Chatbot Interactivo -->
                 <div class="col-md-6 d-flex flex-column">
                     <h5 class="fw-bold mb-3 text-secondary d-flex align-items-center gap-2">
                         🤖 Asistente de Compra En Línea
@@ -108,10 +104,8 @@
         </div>
     </div>
 
-    <!-- Bootstrap Bundle JS (Requerido para interacción del carrusel) -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
-
-

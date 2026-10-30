@@ -3,109 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nombre sitio - Catálogo Interactivo</title>
-    <!-- Bootstrap 5 CSS para diseño responsivo -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --fresh-mint: #e8f5e9;
-            --mint-dark: #2e7d32;
-            --mint-light: #a5d6a7;
-            --bg-soft: #f4f7f6;
-            --dark-slate: #1a3038;
-        }
-        body { background-color: var(--bg-soft); font-family: system-ui, sans-serif; }
-        .navbar-custom { background-color: var(--dark-slate); }
-        .brand-title { color: #00f0d1; font-weight: 700; letter-spacing: 1px; }
-        .section-btn { border-radius: 20px; font-weight: 600; padding: 10px 25px; transition: 0.3s; }
-        .product-card { border: none; border-radius: 12px; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; background: white; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
-        .product-img { height: 220px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px; }
-        .badge-cat { background-color: var(--fresh-mint); color: var(--mint-dark); font-weight: 600; }
-        .hidden { display: none !important; }
-        .carousel-item img { height: 380px; object-fit: contain; background-color: #f0f0f0; border-radius: 12px; }
-        
-        /* Contenedor del Chatbot Estilo Móvil */
-        .chat-container { background: #f8f9fa; border-radius: 12px; border: 1px solid #e0e0e0; height: 390px; display: flex; flex-direction: column; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; }
-        .bot-bubble { background-color: white; color: #333; border-bottom-left-radius: 4px; align-self: flex-start; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .user-bubble { background-color: var(--mint-dark); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
-        .chat-actions { padding: 12px; background: white; border-top: 1px solid #e0e0e0; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
-    </style>
+    <title>Tienda / Bot de Pedidos</title>
+    <link rel="stylesheet" href="style.css"> <!-- O tus estilos actuales -->
 </head>
 <body>
-
-    <!-- Encabezado -->
-    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm py-3">
-        <div class="container justify-content-center">
-            <span class="navbar-brand brand-title m-0 fs-3">✨ Nombre sitio</span>
-        </div>
-    </nav>
-
-    <!-- VISTA 1: EL CATÁLOGO PRINCIPAL -->
-    <div id="catalog-view" class="container my-5">
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-8 text-center">
-                <h4 class="text-secondary mb-3">Filtrar por categoría:</h4>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <button id="btn-all" class="btn btn-outline-dark section-btn active" onclick="switchSection('todos')">Ver Todo</button>
-                    <button id="btn-mascotas" class="btn btn-outline-success section-btn" onclick="switchSection('mascotas')">🐾 Mundo Mascota</button>
-                    <button id="btn-personas" class="btn btn-outline-info section-btn" onclick="switchSection('personas')">👕 Prendas para Personas</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-5 justify-content-center">
-            <div class="col-md-6">
-                <input type="text" id="search-bar" class="form-control form-control-lg shadow-sm" style="border-radius: 30px;" placeholder="🔍 Buscar producto por nombre...">
-            </div>
-        </div>
-
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="products-grid"></div>
-    </div>
-
-    <!-- VISTA 2: DETALLE DEL PRODUCTO + CHATBOT -->
-    <div id="detail-view" class="container my-5 hidden">
-        <div class="mb-4">
-            <button class="btn btn-light border shadow-sm" onclick="showCatalog()">&larr; Volver al catálogo</button>
-        </div>
+    <div class="container">
+        <h1>Nuestros Productos</h1>
         
-        <div class="card p-4 shadow-sm border-0 bg-white" style="border-radius: 16px;">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div id="productCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
-                        <div class="carousel-inner" id="carousel-images"></div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                    <span class="badge badge-cat mb-2 text-uppercase" id="detail-category">Categoría</span>
-                    <h2 class="fw-bold text-dark" id="detail-name">Nombre</h2>
-                    <h3 class="text-success fw-bold mb-3" id="detail-price">$0.00</h3>
-                    <p class="text-muted" id="detail-description">Descripción...</p>
-                    <span class="badge bg-secondary p-2">Sugerencia: Unitalla</span>
-                </div>
-                
-                <div class="col-md-6 d-flex flex-column">
-                    <h5 class="fw-bold mb-3 text-secondary d-flex align-items-center gap-2">
-                        🤖 Asistente de Compra En Línea
-                    </h5>
-                    
-                    <div class="chat-container">
-                        <div class="chat-box" id="chat-box"></div>
-                        <div class="chat-actions d-flex justify-content-center align-items-center" id="chat-actions"></div>
-                    </div>
-                </div>
-            </div>
+        <!-- Catálogo de productos -->
+        <div id="productos-container" class="grid-productos">
+            <!-- Los productos se cargan dinámicamente desde app.js -->
+        </div>
+
+        <!-- Sección del Carrito -->
+        <div class="carrito-section">
+            <h2>Tu Carrito</h2>
+            <ul id="lista-carrito">
+                <!-- Ítems agregados -->
+            </ul>
+            <p><strong>Total: $<span id="total-carrito">0</span></strong></p>
+            <div id="mensaje-envio" class="alerta-envio"></div>
+            <button id="btn-procesar" disabled>Realizar Pedido</button>
         </div>
     </div>
 
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

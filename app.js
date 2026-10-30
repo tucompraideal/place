@@ -1,18 +1,14 @@
 let allProducts = [];
 let activeSection = 'todos';
 
-// CONFIGURACIÓN OBLIGATORIA DE TU RECEPTOR DE PEDIDOS
-// Regístrate gratis en formspree.io, crea un form y pega aquí el ID de 8 dígitos
 const FORMSPREE_ID = "TU_ID_DE_FORMSPREE"; 
 
-// Variables de almacenamiento temporal para el Chatbot
 let currentProduct = null;
 let selectedPayment = "";
 let selectedShippingAgreement = "";
 let clientAddress = "";
 let clientEmail = "";
 
-// Cargar catálogo de productos
 async function fetchProducts() {
     try {
         const response = await fetch('productos.json');
@@ -24,7 +20,6 @@ async function fetchProducts() {
     }
 }
 
-// Controladores de filtros por Apartados Principales
 function switchSection(section) {
     activeSection = section;
     document.querySelectorAll('.section-btn').forEach(btn => btn.classList.remove('active'));
@@ -51,7 +46,7 @@ function applyFilters() {
     }
 
     filtered.forEach(product => {
-        const coverImg = product.images && product.images.length > 0 ? product.images[0] : 'https://placeholder.com';
+        const coverImg = product.images && product.images.length > 0 ? product.images[0] : '';
         grid.innerHTML += `
             <div class="col">
                 <div class="card h-100 product-card shadow-sm" onclick="viewProductDetail(${product.id})">
@@ -69,7 +64,6 @@ function applyFilters() {
     });
 }
 
-// Desplegar ficha de detalles
 function viewProductDetail(productId) {
     const product = allProducts.find(p => p.id === productId);
     if(!product) return;
@@ -103,14 +97,11 @@ function showCatalog() {
     document.getElementById('catalog-view').classList.remove('hidden');
 }
 
-// ==========================================
-// ÁRBOL DE DECISIONES DEL CHATBOT
-// ==========================================
 function initChatbot() {
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = ""; 
     
-    appendBubble("bot", `¡Hola! Qué excelente elección. Me encargaré de procesar tu solicitud para el artículo: <strong>${currentProduct.name}</strong> (Modelo Único / Unitalla).`);
+    appendBubble("bot", `¡Hola! Qué excelente elección. Me encargaré de procesar tu solicitud para el artículo: <strong>${currentProduct.name}</strong>.`);
     setTimeout(() => {
         appendBubble("bot", "¿Qué método de pago prefieres utilizar?");
         setChatActions(`
@@ -133,7 +124,6 @@ function setChatActions(htmlContent) {
     document.getElementById('chat-actions').innerHTML = htmlContent;
 }
 
-// PASO 1: Captura de método de pago y procesamiento de envío/tiempos
 function handlePayment(method) {
     selectedPayment = method;
     appendBubble("user", method);
@@ -144,43 +134,37 @@ function handlePayment(method) {
             shippingInfo = `🎉 ¡Buenas noticias! Tu pedido califica para <strong>Envío Gratis</strong> por superar los $500.`;
             selectedShippingAgreement = "Envío Gratis (Supera $500)";
         } else {
-            shippingInfo = `⚠️ Nota: El costo del envío a domicilio es <strong>aparte</strong> del costo del producto (¡Recuerda que es gratis en compras mayores a $500!).`;
+            shippingInfo = `⚠️ Nota: El costo del envío a domicilio es <strong>aparte</strong> del costo del producto.`;
             selectedShippingAgreement = "Envío con costo aparte (Menor a $500)";
         }
 
-        appendBubble("bot", `${shippingInfo}<br><br>🚨 <strong>Información importante sobre la entrega:</strong><br>• Las entregas a domicilio se realizan al <strong>día siguiente</strong> de procesado tu pedido.<br>• Las entregas en persona quedan completamente <strong>sujetas a disponibilidad de horario y día</strong>.<br><br>¿Estás de acuerdo con estos términos de entrega?`);
-        
-        setChatActions(`
-            <button class="btn btn-sm btn-success text-white" onclick="handleShippingAgreement()">Sí, de acuerdo</button>
-        `);
+        appendBubble("bot", `${shippingInfo}<br><br>¿Estás de acuerdo con estos términos de entrega?`);
+        setChatActions(`<button class="btn btn-sm btn-success text-white" onclick="handleShippingAgreement()">Sí, de acuerdo</button>`);
     }, 600);
 }
 
-// PASO 2: Confirmación de políticas de entrega
 function handleShippingAgreement() {
     appendBubble("user", "Sí, de acuerdo");
-
     setTimeout(() => {
-        appendBubble("bot", "Perfecto. Por favor, proporciona tu <strong>Dirección completa</strong> para agendar la entrega del producto:");
+        appendBubble("bot", "Por favor, proporciona tu <strong>Dirección completa</strong> para agendar la entrega:");
         setChatActions(`
             <div class="input-group w-100 p-1">
-                <input type="text" id="chat-address-input" class="form-control" placeholder="Calle, Número, Colonia, Ciudad...">
+                <input type="text" id="chat-address-input" class="form-control" placeholder="Calle, Número, Colonia...">
                 <button class="btn btn-primary" onclick="handleAddressSubmit()">Siguiente</button>
             </div>
         `);
     }, 600);
 }
 
-// PASO 3: Captura de dirección y petición de correo electrónico de contacto
 function handleAddressSubmit() {
     const input = document.getElementById('chat-address-input');
-    if(!input.value.trim()) return alert("Por favor ingresa tu dirección para poder continuar");
+    if(!input.value.trim()) return alert("Por favor ingresa tu dirección");
     
     clientAddress = input.value.trim();
     appendBubble("user", clientAddress);
 
     setTimeout(() => {
-        appendBubble("bot", "¡Casi terminamos! Por último, proporciónanos tu <strong>Correo Electrónico</strong>. Lo utilizaremos para procesar la orden y mandarte tu confirmación digital automáticamente:");
+        appendBubble("bot", "Por último, proporciónanos tu <strong>Correo Electrónico</strong> para enviarte tu confirmación:");
         setChatActions(`
             <div class="input-group w-100 p-1">
                 <input type="email" id="chat-email-input" class="form-control" placeholder="ejemplo@correo.com">
@@ -190,22 +174,20 @@ function handleAddressSubmit() {
     }, 600);
 }
 
-// PASO 4: Validación regex de email y creación de botón final
 function handleEmailSubmit() {
     const input = document.getElementById('chat-email-input');
     const emailValue = input.value.trim();
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if(!emailRegex.test(emailValue)) {
-        return alert("Por favor ingresa un formato de correo electrónico válido (ejemplo@correo.com)");
+        return alert("Por favor ingresa un correo electrónico válido");
     }
     
     clientEmail = emailValue;
     appendBubble("user", clientEmail);
 
     setTimeout(() => {
-        appendBubble("bot", "Procesando los datos en nuestro sistema... Por favor, presiona el botón de abajo para confirmar el envío de tu pedido.");
-        
+        appendBubble("bot", "Procesando los datos... Presiona el botón de abajo para confirmar tu pedido.");
         setChatActions(`
             <button class="btn btn-success w-100 py-2 fw-bold text-white shadow-sm" style="border-radius:20px;" onclick="sendOrderData()">
                 🚀 Confirmar y Procesar Pedido
@@ -214,47 +196,46 @@ function handleEmailSubmit() {
     }, 600);
 }
 
-// ENVÍO DE DATOS AUTOMÁTICO EN SEGUNDO PLANO (API Formspree)
 function sendOrderData() {
     if(FORMSPREE_ID === "TU_ID_DE_FORMSPREE") {
-        alert("¡Falta Configuración! Debes registrarte en formspree.io y cambiar la constante FORMSPREE_ID en tu archivo app.js");
+        alert("¡Falta Configuración! Registrate en formspree.io y reemplaza FORMSPREE_ID en app.js");
         return;
     }
 
     setChatActions(`<div class="spinner-border text-success" role="status"><span class="visually-hidden">Enviando...</span></div>`);
 
-    // Estructuración del correo
     const formData = {
         _replyto: clientEmail, 
-        _subject: `📦 NUEVO PEDIDO DEL CATÁLOGO: ${currentProduct.name}`,
-        "🛍️ Producto Solicitado": currentProduct.name,
-        "💰 Costo del Producto": $${currentProduct.price.toFixed(2)},
-"💳 Método de Pago Elegido": selectedPayment,
-"🚚 Estatus del Envío": selectedShippingAgreement,
-"📍 Dirección Postal de Entrega": clientAddress,
-"📧 Correo Electrónico Cliente": clientEmail,
-_confirmation: "¡Gracias por tu pedido! Hemos recibido tu solicitud correctamente en nuestro sistema. Procesaremos tu orden según los tiempos estipulados (las entregas a domicilio se agendan para el día siguiente; las entregas personales quedan sujetas a horarios disponibles). Tu orden ya está siendo preparada por el equipo."
-};
-fetch('https://formspree.io{FORMSPREE_ID}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'Accept': 'application/json'
-},
-body: JSON.stringify(formData)
-})
-.then(response => {
-if (response.ok) {
-appendBubble("bot", "✨ ¡Pedido Procesado con éxito! Hemos recibido tus datos de forma segura. En un par de minutos recibirás un correo electrónico confirmando la recepción y los detalles estipulados de tu orden.");
-setChatActions(<button class="btn btn-secondary w-100" style="border-radius:20px;" onclick="showCatalog()">Volver al Catálogo</button>);
-} else {
-throw new Error();
+        _subject: `📦 NUEVO PEDIDO: ${currentProduct.name}`,
+        "🛍️ Producto": currentProduct.name,
+        "💰 Costo": `$${currentProduct.price.toFixed(2)}`,
+        "💳 Pago": selectedPayment,
+        "🚚 Envío": selectedShippingAgreement,
+        "📍 Dirección": clientAddress,
+        "📧 Correo": clientEmail
+    };
+
+    fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (response.ok) {
+            appendBubble("bot", "✨ ¡Pedido procesado con éxito! Recibirás un correo con los detalles.");
+            setChatActions(`<button class="btn btn-secondary w-100" style="border-radius:20px;" onclick="showCatalog()">Volver al Catálogo</button>`);
+        } else {
+            throw new Error();
+        }
+    })
+    .catch(() => {
+        appendBubble("bot", "❌ Hubo un inconveniente al enviar los datos. Vuelve a intentarlo.");
+        setChatActions(`<button class="btn btn-danger w-100" style="border-radius:20px;" onclick="sendOrderData()">Reintentar Envío</button>`);
+    });
 }
-})
-.catch(error => {
-appendBubble("bot", "❌ Hubo un pequeño inconveniente al transmitir los datos de la compra. Por favor, vuelve a intentarlo.");
-setChatActions(<button class="btn btn-danger w-100" style="border-radius:20px;" onclick="sendOrderData()">Reintentar Envío</button>);
-});
-}
+
 document.getElementById('search-bar').addEventListener('input', applyFilters);
 window.onload = fetchProducts;

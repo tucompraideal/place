@@ -309,8 +309,10 @@ function setChatActions(htmlContent) {
 
 function handlePayment(method) {
     selectedPayment = method;
+    deliveryMode = '';
     appendBubble("user", method);
     setTimeout(() => {
+        if (method === 'Efectivo') return handleCash();
         appendBubble("bot", "¿Cómo prefieres recibir tu pedido?");
         setChatActions(`
             <button class="btn btn-pop btn-pay btn-sm me-2" onclick="handleDelivery('personal')">🤝 Entrega personal</button>
@@ -319,21 +321,36 @@ function handlePayment(method) {
     }, 600);
 }
 
+// Efectivo = entrega personal: se sugiere completar el monto, pero nunca se pide dirección ni se habla de cobro de envío
+function handleCash() {
+    deliveryMode = 'personal';
+    const missing = FREE_SHIPPING - cartTotal();
+    if (missing <= 0) return askPersonalPoint();
+    appendBubble("bot", `Por cierto, con <strong>$${missing.toFixed(2)}</strong> más tu pedido calificaría para <strong>envío gratis</strong> 🚚. ¿Quieres agregar algo más?`);
+    setChatActions(`
+        <button class="btn btn-pop btn-pay btn-sm me-2" onclick="showCatalog()">Seguir viendo productos</button>
+        <button class="btn btn-pop btn-white btn-sm" onclick="handleCashContinue()">Continuar así</button>
+    `);
+}
+
+function handleCashContinue() {
+    appendBubble("user", "Continuar así");
+    setTimeout(askPersonalPoint, 600);
+}
+
+function askPersonalPoint() {
+    selectedShippingAgreement = "Entrega personal en Atizapán (sin costo de envío)";
+    appendBubble("bot", "📍 La entrega personal solo se realiza en <strong>Atizapán</strong>. ¿Te queda bien ese punto de entrega?");
+    const other = selectedPayment === 'Efectivo'
+        ? `<button class="btn btn-pop btn-white btn-sm" onclick="handlePayment('Transferencia Bancaria')">Prefiero transferencia</button>`
+        : `<button class="btn btn-pop btn-white btn-sm" onclick="handleDelivery('domicilio')">Mejor a domicilio</button>`;
+    setChatActions(`<button class="btn btn-pop btn-go btn-sm me-2" onclick="handlePersonalAccept()">Sí, me queda bien</button>${other}`);
+}
+
 function handleDelivery(mode) {
     deliveryMode = mode;
     appendBubble("user", mode === 'personal' ? "Entrega personal" : "Envío a domicilio");
-    setTimeout(() => {
-        if (mode === 'personal') {
-            selectedShippingAgreement = "Entrega personal en Atizapán (sin costo de envío)";
-            appendBubble("bot", "📍 La entrega personal solo se realiza en <strong>Atizapán</strong>. ¿Te queda bien ese punto de entrega?");
-            setChatActions(`
-                <button class="btn btn-pop btn-go btn-sm me-2" onclick="handlePersonalAccept()">Sí, me queda bien</button>
-                <button class="btn btn-pop btn-white btn-sm" onclick="handleDelivery('domicilio')">Mejor a domicilio</button>
-            `);
-        } else {
-            askShipping();
-        }
-    }, 600);
+    setTimeout(() => { mode === 'personal' ? askPersonalPoint() : askShipping(); }, 600);
 }
 
 // Envío a domicilio: aplica la regla de envío gratis desde $500

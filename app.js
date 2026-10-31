@@ -4,10 +4,13 @@ let activeSection = 'todos';
 const FORMSPREE_ID = "TU_ID_DE_FORMSPREE"; 
 
 let currentProduct = null;
+    deliveryMode = ''; clientPhone = ''; clientAddress = '';
 let selectedPayment = "";
 let selectedShippingAgreement = "";
 let clientAddress = "";
 let clientEmail = "";
+let clientPhone = "";
+let deliveryMode = ""; // "personal" o "domicilio"
 
 // ---------- Carrito ----------
 const FREE_SHIPPING = 500;
@@ -286,7 +289,7 @@ function startCheckout() {
         appendBubble("bot", "¿Qué método de pago prefieres utilizar?");
         setChatActions(`
             <button class="btn btn-pop btn-pay btn-sm me-2" onclick="handlePayment('Transferencia Bancaria')">💳 Transferencia</button>
-            <button class="btn btn-pop btn-pay btn-sm" onclick="handlePayment('Efectivo (Entrega Personal)')">💵 Efectivo</button>
+            <button class="btn btn-pop btn-pay btn-sm" onclick="handlePayment('Efectivo')">💵 Efectivo</button>
         `);
     }, 600);
 }
@@ -308,19 +311,59 @@ function handlePayment(method) {
     selectedPayment = method;
     appendBubble("user", method);
     setTimeout(() => {
-        const missing = FREE_SHIPPING - cartTotal();
-        if (missing <= 0) {
-            selectedShippingAgreement = "Envío Gratis (Supera $500)";
-            appendBubble("bot", "🎉 ¡Buenas noticias! Tu pedido califica para <strong>Envío Gratis</strong>.<br><br>¿Continuamos con tus datos de entrega?");
-            setChatActions(`<button class="btn btn-pop btn-go btn-sm" onclick="handleShippingAgreement('Sí, continuar')">Sí, continuar</button>`);
-        } else {
-            selectedShippingAgreement = "Envío con costo aparte (Menor a $500)";
-            appendBubble("bot", `Te faltan <strong>$${missing.toFixed(2)}</strong> para <strong>envío gratis</strong> 🚚. ¿Quieres agregar algo más? Si prefieres, sigo con tu pedido tal cual: el envío se cobra aparte.`);
+        appendBubble("bot", "¿Cómo prefieres recibir tu pedido?");
+        setChatActions(`
+            <button class="btn btn-pop btn-pay btn-sm me-2" onclick="handleDelivery('personal')">🤝 Entrega personal</button>
+            <button class="btn btn-pop btn-pay btn-sm" onclick="handleDelivery('domicilio')">🏠 Envío a domicilio</button>
+        `);
+    }, 600);
+}
+
+function handleDelivery(mode) {
+    deliveryMode = mode;
+    appendBubble("user", mode === 'personal' ? "Entrega personal" : "Envío a domicilio");
+    setTimeout(() => {
+        if (mode === 'personal') {
+            selectedShippingAgreement = "Entrega personal en Atizapán (sin costo de envío)";
+            appendBubble("bot", "📍 La entrega personal solo se realiza en <strong>Atizapán</strong>. ¿Te queda bien ese punto de entrega?");
             setChatActions(`
-                <button class="btn btn-pop btn-pay btn-sm me-2" onclick="showCatalog()">Seguir viendo productos</button>
-                <button class="btn btn-pop btn-white btn-sm" onclick="handleShippingAgreement('Continuar así')">Continuar así</button>
+                <button class="btn btn-pop btn-go btn-sm me-2" onclick="handlePersonalAccept()">Sí, me queda bien</button>
+                <button class="btn btn-pop btn-white btn-sm" onclick="handleDelivery('domicilio')">Mejor a domicilio</button>
             `);
+        } else {
+            askShipping();
         }
+    }, 600);
+}
+
+// Envío a domicilio: aplica la regla de envío gratis desde $500
+function askShipping() {
+    const missing = FREE_SHIPPING - cartTotal();
+    if (missing <= 0) {
+        selectedShippingAgreement = "Envío Gratis (Supera $500)";
+        appendBubble("bot", "🎉 ¡Buenas noticias! Tu pedido califica para <strong>Envío Gratis</strong>.<br><br>¿Continuamos con tus datos de entrega?");
+        setChatActions(`<button class="btn btn-pop btn-go btn-sm" onclick="handleShippingAgreement('Sí, continuar')">Sí, continuar</button>`);
+    } else {
+        selectedShippingAgreement = "Envío con costo aparte (Menor a $500)";
+        appendBubble("bot", `Te faltan <strong>$${missing.toFixed(2)}</strong> para <strong>envío gratis</strong> 🚚. ¿Quieres agregar algo más? Si prefieres, sigo con tu pedido tal cual: el envío se cobra aparte.`);
+        setChatActions(`
+            <button class="btn btn-pop btn-pay btn-sm me-2" onclick="showCatalog()">Seguir viendo productos</button>
+            <button class="btn btn-pop btn-white btn-sm" onclick="handleShippingAgreement('Continuar así')">Continuar así</button>
+        `);
+    }
+}
+
+// Entrega personal: solo correo y teléfono
+function handlePersonalAccept() {
+    appendBubble("user", "Sí, me queda bien");
+    setTimeout(() => {
+        appendBubble("bot", "Perfecto. Solo necesito tu <strong>correo electrónico</strong> y tu <strong>teléfono</strong> para ponernos en contacto contigo. Primero, tu correo:");
+        setChatActions(`
+            <div class="input-group w-100 p-1">
+                <input type="email" id="chat-email-input" class="form-control" placeholder="ejemplo@correo.com" aria-label="Correo electrónico">
+                <button class="btn btn-pop btn-next" onclick="handleEmailSubmit()">Siguiente</button>
+            </div>
+        `);
     }, 600);
 }
 
@@ -368,13 +411,36 @@ function handleEmailSubmit() {
     appendBubble("user", escapeHtml(clientEmail));
 
     setTimeout(() => {
-        appendBubble("bot", "Procesando los datos... Presiona el botón de abajo para confirmar tu pedido.");
-        setChatActions(`
-            <button class="btn btn-pop btn-go w-100 py-2" onclick="sendOrderData()">
-                🚀 Confirmar y Procesar Pedido
-            </button>
-        `);
+        if (deliveryMode === 'personal') {
+            appendBubble("bot", "Gracias. Ahora tu <strong>número de teléfono</strong> (10 dígitos):");
+            setChatActions(`
+                <div class="input-group w-100 p-1">
+                    <input type="tel" id="chat-phone-input" class="form-control" placeholder="10 dígitos" aria-label="Número de teléfono">
+                    <button class="btn btn-pop btn-next" onclick="handlePhoneSubmit()">Finalizar</button>
+                </div>
+            `);
+        } else {
+            showConfirm();
+        }
     }, 600);
+}
+
+function handlePhoneSubmit() {
+    const input = document.getElementById('chat-phone-input');
+    const digits = input.value.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 13) return alert("Por favor ingresa un teléfono válido de 10 dígitos");
+    clientPhone = digits;
+    appendBubble("user", escapeHtml(input.value.trim()));
+    setTimeout(showConfirm, 600);
+}
+
+function showConfirm() {
+    appendBubble("bot", "Procesando los datos... Presiona el botón de abajo para confirmar tu pedido.");
+    setChatActions(`
+        <button class="btn btn-pop btn-go w-100 py-2" onclick="sendOrderData()">
+            🚀 Confirmar y Procesar Pedido
+        </button>
+    `);
 }
 
 function sendOrderData() {
@@ -392,8 +458,9 @@ function sendOrderData() {
         "💰 Total": `$${cartTotal().toFixed(2)}`,
         "💳 Pago": selectedPayment,
         "🚚 Envío": selectedShippingAgreement,
-        "📍 Dirección": clientAddress,
-        "📧 Correo": clientEmail
+        "📍 Dirección": deliveryMode === 'personal' ? "Entrega personal en Atizapán" : clientAddress,
+        "📧 Correo": clientEmail,
+        "📞 Teléfono": clientPhone || "No aplica (envío a domicilio)"
     };
 
     fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
@@ -407,7 +474,7 @@ function sendOrderData() {
     .then(response => {
         if (response.ok) {
             cart = {}; saveCart();
-            appendBubble("bot", "✨ ¡Pedido recibido! Te confirmaremos por correo la disponibilidad de tus piezas.");
+            appendBubble("bot", `✨ ¡Pedido recibido! ${deliveryMode === 'personal' ? 'Nos pondremos en contacto contigo por correo o teléfono para coordinar la entrega y confirmar la disponibilidad de tus piezas.' : 'Te confirmaremos por correo la disponibilidad de tus piezas.'}<br><br>💜 ¡Muchas gracias por tu compra! Esperamos que pronto regreses a seguir comprando.`);
             setChatActions(`<button class="btn btn-pop btn-white w-100" onclick="showCatalog()">Volver al Catálogo</button>`);
         } else {
             throw new Error();

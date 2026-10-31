@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nombre sitio - Catálogo Interactivo</title>
+
+    <!-- Tipografías: Baloo 2 (títulos) + DM Sans (texto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS para diseño responsivo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* ---------- Paleta ----------
+           Cada categoría tiene su propio color:
+           amarillo = Mascotas, rosa = Personas, morado = marca general */
+        :root {
+            --ink: #1e1050;
+            --grape: #5b2fd6;
+            --sun: #ffc62b;
+            --sun-soft: #fff1c2;
+            --pink: #ff4f7b;
+            --pink-soft: #ffdce6;
+            --mint: #14c8a8;
+            --page: #f4f0ff;
+            --muted: #4b4570;
+            --border: 3px solid var(--ink);
+            --pop: 0 6px 0 var(--ink);
+            --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+            --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+
+        body { background-color: var(--page); color: var(--ink); font-family: var(--font-body); }
+        .hidden { display: none !important; }
+        :focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+
+        /* ---------- Barra de envío gratis + navegación ---------- */
+        .promo-bar { background: var(--sun); border-bottom: var(--border); text-align: center; font-weight: 700; padding: 8px 12px; font-size: 0.95rem; }
+        .navbar-custom { background-color: var(--ink); }
+        .brand-title { color: var(--sun); font-family: var(--font-display); font-weight: 800; letter-spacing: 0.5px; }
+
+        /* ---------- Hero ---------- */
+        .hero { background: var(--grape); color: #fff; padding: 56px 0 120px; position: relative; overflow: hidden; }
+        .hero-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.3rem, 6vw, 3.8rem); line-height: 1.05; max-width: 15ch; margin: 0 0 14px; }
+        .hero-sub { font-size: 1.15rem; color: #e6deff; max-width: 40ch; margin: 0; }
+        .hero-sticker { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: var(--border); display: grid; place-items: center; font-size: 3.4rem; box-shadow: var(--pop); }
+        .hero-sticker.s1 { background: var(--sun); right: 12%; top: 28px; transform: rotate(-8deg); }
+        .hero-sticker.s2 { background: var(--pink); right: 4%; top: 120px; transform: rotate(10deg); width: 96px; height: 96px; font-size: 2.8rem; }
+        @media (max-width: 767px) { .hero-sticker { display: none; } .hero { padding: 40px 0 100px; } }
+
+        /* ---------- Categorías (botones grandes) ---------- */
+        .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: -76px; position: relative; z-index: 2; padding-bottom: 8px; }
+        @media (max-width: 767px) { .tiles { grid-template-columns: 1fr; margin-top: -60px; } }
+        .tile { position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: center; text-align: left; padding: 18px 22px; border: var(--border); border-radius: 24px; box-shadow: var(--pop); color: var(--ink); font-family: var(--font-body); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .tile-all { background: #fff; }
+        .tile-pets { background: var(--sun); }
+        .tile-people { background: var(--pink); }
+        .tile-emoji { grid-row: span 2; font-size: 2.6rem; line-height: 1; }
+        .tile-title { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.1; }
+        .tile-text { font-size: 0.95rem; font-weight: 500; }
+        .tile:hover { transform: translateY(-3px); box-shadow: 0 9px 0 var(--ink); }
+        /* Botón seleccionado: queda "presionado" y muestra una palomita */
+        .tile.active { transform: translateY(6px); box-shadow: 0 0 0 var(--ink); }
+        .tile.active::after { content: "✓"; position: absolute; top: -12px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .tile { animation: tilePop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) backwards; }
+            .tile:nth-child(2) { animation-delay: 0.08s; }
+            .tile:nth-child(3) { animation-delay: 0.16s; }
+        }
+        @keyframes tilePop { from { opacity: 0; transform: translateY(24px) scale(0.94); } }
+
+        /* ---------- Buscador ---------- */
+        .search-wrap { position: relative; max-width: 560px; margin: 48px auto 40px; }
+        .search-wrap svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        #search-bar { height: 58px; padding-left: 54px; border: var(--border); border-radius: 999px; box-shadow: 0 4px 0 var(--ink); font-size: 1.05rem; color: var(--ink); }
+        #search-bar:focus { border-color: var(--ink); box-shadow: 0 4px 0 var(--grape); outline: 4px solid var(--grape); outline-offset: 2px; }
+        #search-bar::placeholder { color: var(--muted); }
+
+        /* ---------- Tarjetas de producto ---------- */
+        .product-card { border: var(--border); border-radius: 22px; background: #fff; box-shadow: var(--pop); overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--ink); }
+        .product-card:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
+        .img-wrap { position: relative; height: 220px; border-bottom: var(--border); }
+        .sec-mascotas .img-wrap { background: var(--sun-soft); }
+        .sec-personas .img-wrap { background: var(--pink-soft); }
+        .product-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .img-fallback { width: 100%; height: 100%; display: grid; place-items: center; font-size: 4.5rem; }
+        .img-fallback-lg { height: 380px; font-size: 8rem; }
+        .price-tag { position: absolute; right: 14px; bottom: -20px; z-index: 2; background: var(--mint); border: var(--border); border-radius: 999px; padding: 2px 16px; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; transform: rotate(-3deg); }
+        .product-body { padding: 30px 18px 20px; }
+        .product-name { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; line-height: 1.2; margin: 10px 0 0; }
+        .badge-cat { display: inline-block; padding: 2px 12px; border: 2px solid var(--ink); border-radius: 999px; font-weight: 700; font-size: 0.8rem; text-transform: capitalize; color: var(--ink); }
+        .sec-mascotas .badge-cat { background: var(--sun); }
+        .sec-personas .badge-cat { background: var(--pink); }
+
+        .empty-state { text-align: center; padding: 40px 16px; font-size: 1.1rem; color: var(--muted); }
+        .empty-state strong { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--ink); }
+
+        /* ---------- Botones estilo "sticker" ---------- */
+        .btn-pop { font-weight: 700; border: var(--border); border-radius: 999px; color: var(--ink); box-shadow: 0 4px 0 var(--ink); padding: 0.45rem 1.1rem; transition: transform 0.1s, box-shadow 0.1s; }
+        .btn-pop:hover { color: var(--ink); transform: translateY(-1px); box-shadow: 0 5px 0 var(--ink); }
+        .btn-pop:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+        .btn-white { background: #fff; }
+        .btn-pay { background: var(--sun); }
+        .btn-go { background: var(--mint); }
+        .btn-retry { background: var(--pink); }
+        .btn-next { background: var(--grape); color: #fff; }
+        .btn-next:hover { color: #fff; }
+
+        /* ---------- Vista de detalle ---------- */
+        .detail-card { background: #fff; border: var(--border); border-radius: 28px; box-shadow: 0 8px 0 var(--ink); }
+        .detail-name { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.1; }
+        .detail-price { display: inline-block; background: var(--mint); border: var(--border); border-radius: 999px; padding: 0 20px; font-family: var(--font-display); font-weight: 800; font-size: 2rem; transform: rotate(-2deg); margin: 6px 0 14px; }
+        .detail-desc { color: var(--muted); font-size: 1.05rem; line-height: 1.6; }
+        .size-chip { display: inline-block; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 14px; font-weight: 700; background: var(--page); }
+        .carousel-item img { height: 380px; object-fit: contain; border: var(--border); border-radius: 20px; }
+        .carousel-item .img-fallback { border: var(--border); border-radius: 20px; }
+        .sec-mascotas .carousel-item img, .sec-mascotas .carousel-item .img-fallback { background: var(--sun-soft); }
+        .sec-personas .carousel-item img, .sec-personas .carousel-item .img-fallback { background: var(--pink-soft); }
+        .sec-mascotas .badge-cat { background: var(--sun); }
+        .sec-personas .badge-cat { background: var(--pink); }
+        .carousel-control-prev-icon, .carousel-control-next-icon { background-color: var(--ink); background-size: 55%; width: 2.6rem; height: 2.6rem; }
+
+        /* ---------- Chatbot ---------- */
+        .chat-title { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; }
+        .chat-container { background: var(--page); border: var(--border); border-radius: 22px; height: 420px; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-bubble { max-width: 85%; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 18px; font-size: 0.97rem; line-height: 1.45; }
+        .bot-bubble { background: #fff; border-bottom-left-radius: 4px; align-self: flex-start; }
+        .user-bubble { background: var(--grape); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+        .chat-actions { padding: 14px 14px 18px; background: #fff; border-top: var(--border); min-height: 78px; }
+        .chat-actions .form-control { border: var(--border); border-radius: 999px 0 0 999px; color: var(--ink); }
+        .chat-actions .input-group .btn-pop { border-radius: 0 999px 999px 0; box-shadow: none; }
+
+        /* ---------- Carrito, barra de envío y marcos ---------- */
+        .promo-bar { position: sticky; top: 0; z-index: 1030; }
+        .ship-track { height: 10px; max-width: 420px; margin: 6px auto 0; background: #fff; border: 2px solid var(--ink); border-radius: 99px; overflow: hidden; }
+        #ship-fill { height: 100%; width: 0; background: var(--mint); transition: width 0.4s; }
+        .brand-logo { height: 40px; width: auto; }
+        .cart-btn { padding: 0.3rem 0.9rem; }
+        .offcanvas { border-left: var(--border); background: var(--page); color: var(--ink); }
+        .cart-row { display: flex; gap: 12px; align-items: center; border-bottom: 2px dashed var(--ink); padding: 12px 0; }
+        .qty { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+        @media (hover: hover) and (pointer: fine) {
+            .sec-mascotas.product-card:hover { outline: 5px solid var(--sun); outline-offset: 3px; }
+            .sec-personas.product-card:hover { outline: 5px solid var(--pink); outline-offset: 3px; }
+        }
+        .product-card:focus-visible { outline: 5px solid var(--grape); outline-offset: 3px; }
+        .product-card.bounce { animation: cardBounce 0.22s; }
+        @keyframes cardBounce { 40% { transform: scale(0.96); } 75% { transform: scale(1.03); } }
+
+        /* ---------- Existencias ---------- */
+        .stock-tag { display: inline-block; background: var(--pink); color: var(--ink); border: 2px solid var(--ink); border-radius: 999px; padding: 1px 12px; font-weight: 700; font-size: 0.85rem; }
+        .stock-tag.out { background: #d9d4e8; }
+        .img-wrap .stock-tag { position: absolute; left: 12px; top: 12px; z-index: 2; }
+        .product-card.soldout .product-img, .product-card.soldout .img-fallback { filter: grayscale(1); opacity: 0.55; }
+        .stock-note { background: var(--sun-soft); border: 2px solid var(--ink); border-radius: 14px; padding: 8px 12px; margin-bottom: 8px; font-weight: 500; }
+        .cart-row small { display: block; color: var(--muted); }
+    </style>
+</head>
+<body>
+
+    <!-- Aviso de envío gratis (regla de $500 que usa el chatbot) -->
+    <div class="promo-bar"><span id="ship-text">🚚 Envío gratis en pedidos desde $500</span><div class="ship-track"><div id="ship-fill"></div></div></div>
+
+    <!-- Encabezado -->
+    <nav class="navbar navbar-custom py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-brand brand-title m-0 fs-3 d-flex align-items-center gap-2">
+                <!-- Cambia "logo.png" por el nombre de tu archivo de ícono -->
+                <img src="logo.png" alt="" class="brand-logo" onerror="this.replaceWith('✨')">Nombre sitio
+            </span>
+            <button class="btn btn-pop btn-pay cart-btn" data-bs-toggle="offcanvas" data-bs-target="#cart-drawer" aria-label="Abrir carrito">🛒 <span id="cart-count">0</span></button>
+        </div>
+    </nav>
+
+    <!-- VISTA 1: EL CATÁLOGO PRINCIPAL -->
+    <div id="catalog-view">
+        <header class="hero">
+            <div class="container position-relative">
+                <h1 class="hero-title">Todo para ti y para tu peludo</h1>
+                <p class="hero-sub">Elige una categoría y encuentra algo que te encante.</p>
+                <span class="hero-sticker s1" aria-hidden="true">🐶</span>
+                <span class="hero-sticker s2" aria-hidden="true">👕</span>
+            </div>
+        </header>
+
+        <div class="container pb-5">
+            <div class="tiles" role="group" aria-label="Filtrar por categoría">
+                <button id="btn-all" class="section-btn tile tile-all active" aria-pressed="true" onclick="switchSection('todos')">
+                    <span class="tile-emoji" aria-hidden="true">🛍️</span>
+                    <span class="tile-title">Ver todo</span>
+                    <span class="tile-text">Todo el catálogo</span>
+                </button>
+                <button id="btn-mascotas" class="section-btn tile tile-pets" aria-pressed="false" onclick="switchSection('mascotas')">
+                    <span class="tile-emoji" aria-hidden="true">🐾</span>
+                    <span class="tile-title">Mundo Mascota</span>
+                    <span class="tile-text">Para tu compañero peludo</span>
+                </button>
+                <button id="btn-personas" class="section-btn tile tile-people" aria-pressed="false" onclick="switchSection('personas')">
+                    <span class="tile-emoji" aria-hidden="true">👕</span>
+                    <span class="tile-title">Prendas para Personas</span>
+                    <span class="tile-text">Ropa para ti</span>
+                </button>
+            </div>
+
+            <div class="search-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e1050" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+                <input type="text" id="search-bar" class="form-control" aria-label="Buscar producto por nombre" placeholder="Buscar producto por nombre">
+            </div>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 pb-3" id="products-grid"></div>
+        </div>
+    </div>
+
+    <!-- VISTA 2: DETALLE DEL PRODUCTO + CHATBOT -->
+    <div id="detail-view" class="container my-5 hidden">
+        <div class="mb-4">
+            <button class="btn btn-pop btn-white" onclick="showCatalog()">&larr; Volver al catálogo</button>
+        </div>
+
+        <div id="detail-card" class="detail-card p-4">
+            <div class="row g-4">
+                <div class="col-md-6" id="detail-left">
+                    <div id="productCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="carousel-images"></div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon rounded-circle" aria-hidden="true"></span>
+                            <span class="visually-hidden">Foto anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon rounded-circle" aria-hidden="true"></span>
+                            <span class="visually-hidden">Foto siguiente</span>
+                        </button>
+                    </div>
+                    <span class="badge-cat mb-2" id="detail-category">Categoría</span>
+                    <h2 class="detail-name" id="detail-name">Nombre</h2>
+                    <div class="detail-price" id="detail-price">$0.00</div>
+                    <div id="detail-stock" class="mb-2"></div>
+                    <p class="detail-desc" id="detail-description">Descripción...</p>
+                    <span class="size-chip">Sugerencia: Unitalla</span>
+                    <div class="d-flex flex-wrap gap-3 mt-4">
+                        <button class="btn btn-pop btn-pay" id="btn-add" onclick="addCurrent()">🛒 Agregar al carrito</button>
+                        <button class="btn btn-pop btn-go" id="btn-buy" onclick="buyNow()">Comprar ahora</button>
+                    </div>
+                </div>
+
+                <div class="col-md-6 d-flex flex-column" id="chat-col">
+                    <h5 class="chat-title mb-3 d-flex align-items-center gap-2">
+                        🤖 Asistente de Compra En Línea
+                    </h5>
+
+                    <div class="chat-container">
+                        <div class="chat-box" id="chat-box"></div>
+                        <div class="chat-actions d-flex justify-content-center align-items-center" id="chat-actions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrito -->
+    <div class="offcanvas offcanvas-end" id="cart-drawer" tabindex="-1" aria-labelledby="cart-title">
+        <div class="offcanvas-header">
+            <h5 id="cart-title" class="chat-title m-0">🛒 Tu carrito</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            <div id="cart-items" class="flex-grow-1"></div>
+            <div id="cart-footer"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

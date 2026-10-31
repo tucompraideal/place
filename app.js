@@ -1,10 +1,10 @@
+const APP_VERSION = 'v6';
 let allProducts = [];
 let activeSection = 'todos';
 
 const FORMSPREE_ID = "TU_ID_DE_FORMSPREE"; 
 
 let currentProduct = null;
-    deliveryMode = ''; clientPhone = ''; clientAddress = '';
 let selectedPayment = "";
 let selectedShippingAgreement = "";
 let clientAddress = "";
@@ -82,6 +82,7 @@ function buyNow() {
 }
 
 function renderCart() {
+    if (!document.getElementById('cart-count')) return; // index.html sin carrito: no bloquear el catálogo
     const items = cartItems(), total = cartTotal();
     const count = items.reduce((sum, i) => sum + i.qty, 0);
     const missing = FREE_SHIPPING - total;
@@ -126,15 +127,29 @@ function imgFail(img) {
 }
 
 async function fetchProducts() {
+    const grid = document.getElementById('products-grid');
+    const showError = (title, text, error) => {
+        console.error(title, error);
+        grid.innerHTML = `<div class="empty-state w-100"><strong>${title}</strong>${text}<br><small>Detalle: ${escapeHtml(String(error && error.message))} · app.js ${APP_VERSION}</small></div>`;
+    };
     try {
-        const response = await fetch('productos.json');
+        if (location.protocol === 'file:') throw new Error('abierto como archivo (file://)');
+        // El parámetro evita que el navegador use una copia vieja de productos.json
+        const response = await fetch('productos.json?v=' + Date.now());
+        if (!response.ok) throw new Error('HTTP ' + response.status);
         allProducts = await response.json();
+    } catch (error) {
+        const local = location.protocol === 'file:';
+        return showError('No pudimos cargar los productos',
+            local ? 'Abriste la página con doble click y el navegador bloquea la lectura de productos.json. Ábrela con un servidor local (por ejemplo la extensión Live Server de VS Code) o súbela a tu hosting.'
+                  : 'Revisa que productos.json esté junto a index.html y que no tenga errores (puedes validarlo en jsonlint.com).', error);
+    }
+    try {
         clampCart();
         renderCart();
         applyFilters();
     } catch (error) {
-        console.error("Error al leer el archivo JSON:", error);
-        document.getElementById('products-grid').innerHTML = `<div class="empty-state w-100"><strong>No pudimos cargar los productos</strong>Recarga la página. Si sigue igual, revisa que productos.json esté junto a index.html.</div>`;
+        showError('No pudimos mostrar los productos', 'Revisa que index.html y app.js sean de la misma versión.', error);
     }
 }
 
@@ -274,6 +289,7 @@ function initBrowseChat() {
 function startCheckout() {
     if (cartItems().length === 0) return;
     currentProduct = null;
+    deliveryMode = ''; clientPhone = ''; clientAddress = '';
     document.getElementById('detail-card').className = 'detail-card p-4';
     document.getElementById('detail-left').classList.add('d-none');
     document.getElementById('chat-col').className = 'col-12 col-md-8 mx-auto d-flex flex-column';

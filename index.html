@@ -192,6 +192,8 @@
 
         /* Deja espacio para la barra fija de envío al desplazarse a las tarjetas */
         #products-grid > * { scroll-margin-top: 90px; }
+        /* Alarga la página lo suficiente para que, aunque haya pocos productos, la primera tarjeta pueda subir hasta arriba */
+        #products-grid { min-height: calc(100vh - 90px); align-content: flex-start; }
     </style>
 </head>
 <body>

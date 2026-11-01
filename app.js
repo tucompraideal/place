@@ -1,4 +1,4 @@
-const APP_VERSION = 'v7';
+const APP_VERSION = 'v8';
 let allProducts = [];
 let activeSection = 'todos';
 
@@ -166,6 +166,15 @@ function switchSection(section) {
         activeBtn.setAttribute('aria-pressed', 'true');
     }
     applyFilters();
+    scrollToFirstProduct();
+}
+
+// Al elegir una categoría, baja suavemente hasta la primera tarjeta
+function scrollToFirstProduct() {
+    const first = document.querySelector('#products-grid > *');
+    if (!first) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    first.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 }
 
 function applyFilters() {

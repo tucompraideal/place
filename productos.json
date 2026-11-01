@@ -32,7 +32,9 @@
     "category": "juguetes",
     "price": 89.9,
     "description": "Pelota de hule resistente con textura para morder. Ideal para jugar y cuidar los dientes de tu mascota.",
-    "images": [],
+    "images": [
+      "fotos/IMG_169.jpg"
+    ],
     "stock": 12
   },
   {

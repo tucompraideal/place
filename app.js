@@ -368,7 +368,7 @@ function handleCashContinue() {
 
 function askPersonalPoint() {
     selectedShippingAgreement = "Entrega personal en Atizapán (sin costo de envío)";
-    appendBubble("bot", "📍 Hacemos entregas personales unicamente los días <strong>Lunes y viernes </strong> en zona <strong>Atizapán</strong>. " + 
+    appendBubble("bot", "📍 Hacemos entregas personales unicamente los días <strong>Lunes y viernes</strong> en zona <strong>Atizapán</strong>. " + 
                         "¿Te acomoda alguno de estos días para la entrega?");
     const other = selectedPayment === 'Efectivo'
         ? `<button class="btn btn-pop btn-white btn-sm" onclick="handlePayment('Transferencia Bancaria')">Prefiero transferencia</button>`
